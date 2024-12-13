@@ -63,7 +63,11 @@ func readMain(args []string) int {
 		Records []map[string]any `json:"records"`
 	}{records}
 
-	if err := json.NewEncoder(os.Stdout).Encode(wrapped); err != nil {
+	// TODO: Add option for indentation
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+
+	if err := encoder.Encode(wrapped); err != nil {
 		slog.Error("failed to encode records", slog.String("error", err.Error()))
 		return ExitFailEncodingRecords
 	}
