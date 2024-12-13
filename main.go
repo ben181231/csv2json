@@ -30,7 +30,7 @@ var numberRegex = regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 
 func readMain(args []string) int {
 	reader := csv.NewReader(os.Stdin)
-	// TODO: Set options for no headers case
+	// TODO: Add option for no headers case
 	headers, err := reader.Read()
 	if err != nil {
 		slog.Error("failed to read header", slog.String("error", err.Error()))
@@ -58,7 +58,12 @@ func readMain(args []string) int {
 		records = append(records, record)
 	}
 
-	if err := json.NewEncoder(os.Stdout).Encode(records); err != nil {
+	// TODO: Add option to skip wrapping
+	wrapped := struct {
+		Records []map[string]any `json:"records"`
+	}{records}
+
+	if err := json.NewEncoder(os.Stdout).Encode(wrapped); err != nil {
 		slog.Error("failed to encode records", slog.String("error", err.Error()))
 		return ExitFailEncodingRecords
 	}
