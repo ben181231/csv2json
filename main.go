@@ -7,6 +7,8 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"regexp"
+	"strings"
 )
 
 const (
@@ -24,6 +26,8 @@ func main() {
 	os.Exit(readMain(os.Args))
 }
 
+var numberRegex = regexp.MustCompile(`^-?\d+(\.\d+)?$`)
+
 func readMain(args []string) int {
 	reader := csv.NewReader(os.Stdin)
 	// TODO: Set options for no headers case
@@ -32,7 +36,7 @@ func readMain(args []string) int {
 		slog.Error("failed to read header", slog.String("error", err.Error()))
 		return ExitFailReadingHeader
 	}
-	var records []map[string]string
+	var records []map[string]any
 	for {
 		row, err := reader.Read()
 		if err != nil {
@@ -42,9 +46,14 @@ func readMain(args []string) int {
 			slog.Error("failed to read Row", slog.String("error", err.Error()))
 			return ExitFailReadingRow
 		}
-		record := make(map[string]string)
+		record := make(map[string]any)
 		for i, header := range headers {
-			record[header] = row[i]
+			val := row[i]
+			if trimmed := strings.TrimSpace(val); numberRegex.MatchString(trimmed) {
+				record[header] = json.Number(trimmed)
+			} else {
+				record[header] = val
+			}
 		}
 		records = append(records, record)
 	}
